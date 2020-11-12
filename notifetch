@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+user="$USER@$(hostname)"
+vol="$(amixer -D pulse get Master | grep '%' | head -n 1 | cut -d '[' -f 2 | cut -d '%' -f 1)"
+bat="$(acpi | grep "Battery 0" | cut -d, -f2 | cut -d" " -f2)"
+mem="$(free -m | tail -n 2 | head -n 1 | awk '{ print $3 }')"
+mem2="$(free -m | tail -n 2 | head -n 1 | awk '{ print $5 }')"
+totmem="$((mem + mem2))"
+totmem="$(echo $totmem | sed 's/$/M/')"
+mem="$(echo $mem | sed 's/$/M/')"
+mem2="$(echo $mem2 | sed 's/$/M/')"
+date="$(date +"%a %F")"
+time="$(date +"%H:%M %p")"
+wifi="$(nmcli | grep ": connected" | awk '{print $4 }')"
+bckl="$(xbacklight | awk '{print int($1+0.5)}')"
+os="$(cat /etc/os-release | grep PRETTY | cut -f 2 -d '=' | sed 's/"//g')"
+kernel="$(uname -r | cut -f 1 -d '-')"
+uptime="$(uptime | cut -f 1 -d ',' | sed -E 's/^[^,]*up *//; s/, *[[:digit:]]* users.*//; s/min/minutes/; s/([[:digit:]]+):0?([[:digit:]]+)/\1 hours, \2 minutes/')"
+id=$(xprop -root -notype _NET_SUPPORTING_WM_CHECK)
+id=${id##* }
+wm="$(xprop -id "$id" -notype -len 25 -f _NET_WM_NAME 8t | grep 'WM_NAME' | cut -f 2 -d '=' | sed 's/ //g;s/"//g')"
+pkg="$(pacman -Qq | wc -l)"
+sh="$(echo $SHELL | rev | cut -f 1 -d '/' | rev)"
+dunstify --replace 301 -u critical " ${user}"$'\n'" ${date}"$'\n'" ${time}"$'\n'" ${uptime}"$'\n'" ${os}"$'\n'" ${kernel}"$'\n'" ${wm}"$'\n'" ${pkg}"$'\n'" ${sh}"$'\n'" ${vol}%  ${bat}  ${bckl}%"$'\n'" ${mem}/${mem2}/${totmem}"$'\n'"直 ${wifi}"
