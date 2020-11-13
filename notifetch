@@ -1,23 +1,55 @@
 #!/usr/bin/env bash
+
+
+# Get user and hostname
 user="$USER@$(hostname)"
+
+# Get current volume percentage
 vol="$(amixer -D pulse get Master | grep '%' | head -n 1 | cut -d '[' -f 2 | cut -d '%' -f 1)"
+
+# Get current battery percentage
 bat="$(acpi | grep "Battery 0" | cut -d, -f2 | cut -d" " -f2)"
+
+# Get used memory
 mem="$(free -m | tail -n 2 | head -n 1 | awk '{ print $3 }')"
+# Get shared memory
 mem2="$(free -m | tail -n 2 | head -n 1 | awk '{ print $5 }')"
+# Calculate total memor
 totmem="$((mem + mem2))"
+# Append 'M' to all 3
 totmem="$(echo $totmem | sed 's/$/M/')"
 mem="$(echo $mem | sed 's/$/M/')"
 mem2="$(echo $mem2 | sed 's/$/M/')"
+
+# Get current date and time
 date="$(date +"%a %F")"
 time="$(date +"%H:%M %p")"
+
+# Get connected wifi ssid
 wifi="$(nmcli | grep ": connected" | awk '{print $4 }')"
+
+# Get monitor backlight percentage
 bckl="$(xbacklight | awk '{print int($1+0.5)}')"
+
+# Get OS name
 os="$(cat /etc/os-release | grep PRETTY | cut -f 2 -d '=' | sed 's/"//g')"
+
+# Get kernel name
 kernel="$(uname -r | cut -f 1 -d '-')"
+
+# Get uptime and convert it to a nice format
 uptime="$(uptime | cut -f 1 -d ',' | sed -E 's/^[^,]*up *//; s/, *[[:digit:]]* users.*//; s/min/minutes/; s/([[:digit:]]+):0?([[:digit:]]+)/\1 hours, \2 minutes/')"
+
+# Get wm name
 id=$(xprop -root -notype _NET_SUPPORTING_WM_CHECK)
 id=${id##* }
 wm="$(xprop -id "$id" -notype -len 25 -f _NET_WM_NAME 8t | grep 'WM_NAME' | cut -f 2 -d '=' | sed 's/ //g;s/"//g')"
+
+# Get package count
 pkg="$(pacman -Qq | wc -l)"
+
+# Get shell name
 sh="$(echo $SHELL | rev | cut -f 1 -d '/' | rev)"
+
+# Send notification
 dunstify --replace 301 -u critical " ${user}"$'\n'" ${date}"$'\n'" ${time}"$'\n'" ${uptime}"$'\n'" ${os}"$'\n'" ${kernel}"$'\n'" ${wm}"$'\n'" ${pkg}"$'\n'" ${sh}"$'\n'" ${vol}%  ${bat}  ${bckl}%"$'\n'" ${mem}/${mem2}/${totmem}"$'\n'"直 ${wifi}"
