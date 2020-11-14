@@ -115,22 +115,22 @@ fi
 sh="$(echo $SHELL | rev | cut -f 1 -d '/' | rev)"
 
 # debug
-echo $user
-echo $date
-echo $time
-echo $uptime
-echo $os
-echo $kernel
-echo $wm
-echo $pkg
-echo $sh
-echo $vol
-echo $bat
-echo $bckl
-echo $mem
-echo $mem2
-echo $totmem
-echo $wifi
+echo "User: $user"
+echo "Date: $date"
+echo "Time: $time"
+echo "Uptime: $uptime"
+echo "OS: $os"
+echo "Kernel: $kernel"
+echo "WM: $wm"
+echo "Packages: $pkg"
+echo "Shell: $sh"
+echo "Volume: $vol"
+echo "Battery: $bat"
+echo "Backlight: $bckl"
+echo "Used memory: $mem"
+echo "Shared memory: $mem2"
+echo "Total used memory: $totmem"
+echo "Wifi: $wifi"
 
 
 # Send notification
