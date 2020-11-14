@@ -84,13 +84,15 @@ wm="$(xprop -id "$id" -notype -len 25 -f _NET_WM_NAME 8t | grep 'WM_NAME' | cut 
 
 # Get package count
 # Get all packages and do a line count
-pkg="$(pacman -Qq | wc -l)"
 if command -v pacman &> /dev/null
 then
    pkg="$(pacman -Qq | wc -l)"
 elif command -v dpkg &> /dev/null
 then
    pkg="$(dpkg --list | wc -l)"
+elif command -v yum &> /dev/null
+then
+   pkg="$(yum list installed | wc -l)"
 fi 
 
 # Get shell name
