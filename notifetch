@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
 
+img=$1
+if [ $# -eq "0" ]
+then
+    img=""
+else
+    img="-i $1"
+fi
 
 # Get user and hostname
-user="$USER@$(cat /proc/sys/kernel/hostname)"
+user="$(whoami)@$(cat /proc/sys/kernel/hostname)"
 
 # Get current volume percentage
 # amixer outputs Front left and Front right values with %'s and some other info
@@ -133,7 +140,7 @@ echo "Wifi: $wifi"
 # I will try to improve this later so it would be configurable, but for now it outputs everything
 if ! command -v dunstify &> /dev/null
 then
-    notify-send 301 -u critical " ${user}"$'\n'" ${date}"$'\n'" ${time}"$'\n'" ${uptime}"$'\n'" ${os}"$'\n'" ${kernel}"$'\n'" ${wm}"$'\n'" ${pkg}"$'\n'" ${sh}"$'\n'" ${vol}%  ${bat}%  ${bckl}%"$'\n'" ${mem}/${mem2}/${totmem}"$'\n'"直 ${wifi}"
+    notify-send -u critical " ${user}"$'\n'" ${date}"$'\n'" ${time}"$'\n'" ${uptime}"$'\n'" ${os}"$'\n'" ${kernel}"$'\n'" ${wm}"$'\n'" ${pkg}"$'\n'" ${sh}"$'\n'" ${vol}%  ${bat}%  ${bckl}%"$'\n'" ${mem}/${mem2}/${totmem}"$'\n'"直 ${wifi}"
 else
-    dunstify --replace 301 -u critical " ${user}"$'\n'" ${date}"$'\n'" ${time}"$'\n'" ${uptime}"$'\n'" ${os}"$'\n'" ${kernel}"$'\n'" ${wm}"$'\n'" ${pkg}"$'\n'" ${sh}"$'\n'" ${vol}%  ${bat}%  ${bckl}%"$'\n'" ${mem}/${mem2}/${totmem}"$'\n'"直 ${wifi}"
+    dunstify $img --replace 301 -u critical " ${user}"$'\n'" ${date}"$'\n'" ${time}"$'\n'" ${uptime}"$'\n'" ${os}"$'\n'" ${kernel}"$'\n'" ${wm}"$'\n'" ${pkg}"$'\n'" ${sh}"$'\n'" ${vol}%  ${bat}%  ${bckl}%"$'\n'" ${mem}/${mem2}/${totmem}"$'\n'"直 ${wifi}"
 fi
