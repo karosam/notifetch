@@ -14,7 +14,6 @@ It's a fetch script, but with a notification!
 
 ## To-do list
 
-* Music support
 * Improve script speed(Right now execute time is 150-300ms, would love to decrease that to max 200ms)
 
 
