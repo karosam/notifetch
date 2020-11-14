@@ -114,6 +114,25 @@ fi
 # I then reverse it again to get the shell
 sh="$(echo $SHELL | rev | cut -f 1 -d '/' | rev)"
 
+# debug
+echo $user
+echo $date
+echo $time
+echo $uptime
+echo $os
+echo $kernel
+echo $wm
+echo $pkg
+echo $sh
+echo $vol
+echo $bat
+echo $bckl
+echo $mem
+echo $mem2
+echo $totmem
+echo $wifi
+
+
 # Send notification
 # I will try to improve this later so it would be configurable, but for now it outputs everything
 if ! command -v dunstify &> /dev/null
