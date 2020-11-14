@@ -13,7 +13,7 @@ vol="$(amixer -D pulse get Master | grep '%' | head -n 1 | cut -d '[' -f 2 | cut
 # Get current battery percentage
 # acpi outputs a single line if there's only 1 battery, but just to make sure I grep the main battery
 # 2nd field of acpi is the %, so I cut out the rest
-bat="$(acpi | grep "Battery 0" | cut -d , -f2 | cut -d" " -f2)"
+bat="$(cat /sys/class/power_supply/*BAT*/capacity)"
 
 # Get memory
 # free -m outputs headers, memory and swap in 3 lines
@@ -95,4 +95,4 @@ sh="$(echo $SHELL | rev | cut -f 1 -d '/' | rev)"
 
 # Send notification
 # I will try to improve this later so it would be configurable, but for now it outputs everything
-dunstify --replace 301 -u critical " ${user}"$'\n'" ${date}"$'\n'" ${time}"$'\n'" ${uptime}"$'\n'" ${os}"$'\n'" ${kernel}"$'\n'" ${wm}"$'\n'" ${pkg}"$'\n'" ${sh}"$'\n'" ${vol}%  ${bat}  ${bckl}%"$'\n'" ${mem}/${mem2}/${totmem}"$'\n'"直 ${wifi}"
+dunstify --replace 301 -u critical " ${user}"$'\n'" ${date}"$'\n'" ${time}"$'\n'" ${uptime}"$'\n'" ${os}"$'\n'" ${kernel}"$'\n'" ${wm}"$'\n'" ${pkg}"$'\n'" ${sh}"$'\n'" ${vol}%  ${bat}%  ${bckl}%"$'\n'" ${mem}/${mem2}/${totmem}"$'\n'"直 ${wifi}"
