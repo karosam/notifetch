@@ -10,7 +10,4 @@ It's a fetch script, but with a notification!
 
 ## Requirements
 
-* arch (for now only arch support)
-* dunst
-* NetworkManager
-* alsa
+* Nerd Fonts in dunstrc config (or change the icons in the script to suitable ones)
