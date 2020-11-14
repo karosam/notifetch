@@ -56,8 +56,8 @@ wifi="$(nmcli | grep ": connected" | head -n 1 | awk '{print $4 }')"
 # to counter it I add 0.5 to the value and round it up by casting it to an int
 # It gets the value correctly most of the time
 # If there's a better solution, feel free to suggest
-bckl="$(xbacklight | awk '{print int($1+0.5)}')"
-
+#bckl="$(xbacklight | awk '{print int($1+0.5)}')"
+bckl="$(awk "BEGIN {print int(($(cat /sys/class/backlight/*/brightness)/$(cat /sys/class/backlight/*/max_brightness)*100)+0.5)}")"
 # Get OS name
 # /etc/os-release has NAME and PRETTY_NAME, I grep the 1st NAME line
 # Then i cut everything before the '=' (format is 'NAME="osname"') and cut the '"'
