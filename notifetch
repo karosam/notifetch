@@ -85,6 +85,13 @@ wm="$(xprop -id "$id" -notype -len 25 -f _NET_WM_NAME 8t | grep 'WM_NAME' | cut 
 # Get package count
 # Get all packages and do a line count
 pkg="$(pacman -Qq | wc -l)"
+if command -v pacman &> /dev/null
+then
+   pkg="$(pacman -Qq | wc -l)"
+elif command -v dpkg &> /dev/null
+then
+   pkg="$(dpkg --list | wc -l)"
+fi 
 
 # Get shell name
 # Gets current shell name in /bin/shell or /usr/bin/shell
@@ -95,4 +102,9 @@ sh="$(echo $SHELL | rev | cut -f 1 -d '/' | rev)"
 
 # Send notification
 # I will try to improve this later so it would be configurable, but for now it outputs everything
-dunstify --replace 301 -u critical " ${user}"$'\n'" ${date}"$'\n'" ${time}"$'\n'" ${uptime}"$'\n'" ${os}"$'\n'" ${kernel}"$'\n'" ${wm}"$'\n'" ${pkg}"$'\n'" ${sh}"$'\n'" ${vol}%  ${bat}%  ${bckl}%"$'\n'" ${mem}/${mem2}/${totmem}"$'\n'"直 ${wifi}"
+if ! command -v dunstify &> /dev/null
+then
+    notify-send 301 -u critical " ${user}"$'\n'" ${date}"$'\n'" ${time}"$'\n'" ${uptime}"$'\n'" ${os}"$'\n'" ${kernel}"$'\n'" ${wm}"$'\n'" ${pkg}"$'\n'" ${sh}"$'\n'" ${vol}%  ${bat}%  ${bckl}%"$'\n'" ${mem}/${mem2}/${totmem}"$'\n'"直 ${wifi}"
+else
+    dunstify --replace 301 -u critical " ${user}"$'\n'" ${date}"$'\n'" ${time}"$'\n'" ${uptime}"$'\n'" ${os}"$'\n'" ${kernel}"$'\n'" ${wm}"$'\n'" ${pkg}"$'\n'" ${sh}"$'\n'" ${vol}%  ${bat}%  ${bckl}%"$'\n'" ${mem}/${mem2}/${totmem}"$'\n'"直 ${wifi}"
+fi
