@@ -14,7 +14,16 @@ vol="$(amixer -D pulse get Master | grep '%' | head -n 1 | cut -d '[' -f 2 | cut
 # acpi outputs a single line if there's only 1 battery, but just to make sure I grep the main battery
 # 2nd field of acpi is the %, so I cut out the rest
 # bat="$(expr $(expr $(cat /sys/class/power_supply/*BAT*/charge_now) / $(cat /sys/class/power_supply/*BAT*/charge_full)) \* 100)"
-bat="$(awk "BEGIN {print int($(cat /sys/class/power_supply/*BAT*/charge_now)/$(cat /sys/class/power_supply/*BAT*/charge_full)*100)}")"
+if command -v acpi &> /dev/null
+then
+    bat="$(acpi | cut -f 2 -d ',' | sed 's/ //g' | sed 's/%//g')"
+elif test -f "/sys/class/power_supply/*BAT*/capacity"
+then
+    bat="$(cat /sys/class/power_supply/*BAT*/capacity)"
+else
+    bat="$(awk "BEGIN {print int($(cat /sys/class/power_supply/*BAT*/charge_now)/$(cat /sys/class/power_supply/*BAT*/charge_full)*100)}")"
+fi
+
 # Get memory
 # free -m outputs headers, memory and swap in 3 lines
 # with tail we cut off the headers, and use head to get memory line
