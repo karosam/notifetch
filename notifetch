@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 img=$1
 if [ $# -eq "0" ]
@@ -21,16 +21,18 @@ vol="$(amixer -D pulse get Master | grep '%' | head -n 1 | cut -d '[' -f 2 | cut
 # acpi outputs a single line if there's only 1 battery, but just to make sure I grep the main battery
 # 2nd field of acpi is the %, so I cut out the rest
 # bat="$(expr $(expr $(cat /sys/class/power_supply/*BAT*/charge_now) / $(cat /sys/class/power_supply/*BAT*/charge_full)) \* 100)"
-if command -v acpi &> /dev/null
+if [ -d /sys/class/power_supply/*BAT* ]
 then
-    bat="$(acpi | cut -f 2 -d ',' | sed 's/ //g' | sed 's/%//g')"
-elif [ -f /sys/class/power_supply/*BAT*/capacity ]
-then
-    bat="$(cat /sys/class/power_supply/*BAT*/capacity)"
-else
-    bat="$(awk "BEGIN {print int($(cat /sys/class/power_supply/*BAT*/charge_now)/$(cat /sys/class/power_supply/*BAT*/charge_full)*100)}")"
+    if command -v acpi &> /dev/null
+    then
+        bat="$(acpi | cut -f 2 -d ',' | sed 's/ //g' | sed 's/%//g')"
+    elif [ -f /sys/class/power_supply/*BAT*/capacity ]
+    then
+        bat="$(cat /sys/class/power_supply/*BAT*/capacity)"
+    else
+        bat="$(awk "BEGIN {print int($(cat /sys/class/power_supply/*BAT*/charge_now)/$(cat /sys/class/power_supply/*BAT*/charge_full)*100)}")"
+    fi
 fi
-
 # Get memory
 # free -m outputs headers, memory and swap in 3 lines
 # with tail we cut off the headers, and use head to get memory line
@@ -73,7 +75,10 @@ wifi="$(nmcli | grep ": connected" | head -n 1 | awk '{print $4 }')"
 # It gets the value correctly most of the time
 # If there's a better solution, feel free to suggest
 #bckl="$(xbacklight | awk '{print int($1+0.5)}')"
-bckl="$(awk "BEGIN {print int(($(cat /sys/class/backlight/*/brightness)/$(cat /sys/class/backlight/*/max_brightness)*100)+0.5)}")"
+if [ -d /sys/class/backlight ]
+then
+    bckl="$(awk "BEGIN {print int(($(cat /sys/class/backlight/*/brightness)/$(cat /sys/class/backlight/*/max_brightness)*100)+0.5)}")"
+fi
 # Get OS name
 # /etc/os-release has NAME and PRETTY_NAME, I grep the 1st NAME line
 # Then i cut everything before the '=' (format is 'NAME="osname"') and cut the '"'
@@ -138,7 +143,10 @@ echo "Wifi: $wifi"
 
 # Send notification
 # I will try to improve this later so it would be configurable, but for now it outputs everything
-if ! command -v dunstify &> /dev/null
+if command -v naughty.notify &> /dev/null
+then
+    awesome-client "require(\"naughty\").notify({text=\"That's how\", icon=\" ${user}"$'\n'" ${date}"$'\n'" ${time}"$    '\n'" ${uptime}"$'\n'" ${os}"$'\n'" ${kernel}"$'\n'" ${wm}"$'\n'" $    {pkg}"$'\n'" ${sh}"$'\n'" ${vol}%  ${bat}%  ${bckl}%"$'\n'" ${mem}/    ${mem2}/${totmem}"$'\n'"直 ${wifi}\"})"
+elif ! command -v dunstify &> /dev/null
 then
     notify-send -u critical " ${user}"$'\n'" ${date}"$'\n'" ${time}"$'\n'" ${uptime}"$'\n'" ${os}"$'\n'" ${kernel}"$'\n'" ${wm}"$'\n'" ${pkg}"$'\n'" ${sh}"$'\n'" ${vol}%  ${bat}%  ${bckl}%"$'\n'" ${mem}/${mem2}/${totmem}"$'\n'"直 ${wifi}"
 else
