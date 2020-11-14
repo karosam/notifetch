@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Possible values:
 # user date upos kernel wm mem bat backlight vol wifi pkg sh
-config=("user" "time" "date" "uptime" "os" "kernel" "wm" "mem" "bat" "backlight" "vol" "pkg" "sh" "wifi")
+config=("user" "time" "date" "uptime" "os" "kernel" "wm" "mem" "bat" "backlight" "vol" "pkg" "sh" "wifi" "music" "weather")
 level="critical"
+weather_city="London"
 for val in ${config[*]}
 do
     case $val in
@@ -46,6 +47,14 @@ do
         wifi)
             wifi="$(iw dev wlan0 link | grep 'SSID' | cut -f 2 -d ':' | sed 's/ //g')"
             argconf+='直 '$wifi'\n'
+        ;;
+        music)
+            music="$(mpc current)"
+            argconf+=' '$music'\n'
+        ;;
+        weather)
+            weather="$(curl -s http://wttr.in/$weather_city?format=3)"
+            argconf+='摒 '$weather'\n'
         ;;
         backlight)
             bckl="$(awk "BEGIN {print int(($(cat /sys/class/backlight/*/brightness)/$(cat /sys/class/backlight/*/max_brightness)*100)+0.5)}")"
