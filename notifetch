@@ -17,7 +17,7 @@ vol="$(amixer -D pulse get Master | grep '%' | head -n 1 | cut -d '[' -f 2 | cut
 if command -v acpi &> /dev/null
 then
     bat="$(acpi | cut -f 2 -d ',' | sed 's/ //g' | sed 's/%//g')"
-elif test -f "/sys/class/power_supply/*BAT*/capacity"
+elif [ -f /sys/class/power_supply/*BAT*/capacity ]
 then
     bat="$(cat /sys/class/power_supply/*BAT*/capacity)"
 else
