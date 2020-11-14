@@ -2,7 +2,7 @@
 
 
 # Get user and hostname
-user="$USER@$(hostname)"
+user="$USER@$(cat /proc/sys/kernel/hostname)"
 
 # Get current volume percentage
 # amixer outputs Front left and Front right values with %'s and some other info
@@ -13,8 +13,8 @@ vol="$(amixer -D pulse get Master | grep '%' | head -n 1 | cut -d '[' -f 2 | cut
 # Get current battery percentage
 # acpi outputs a single line if there's only 1 battery, but just to make sure I grep the main battery
 # 2nd field of acpi is the %, so I cut out the rest
-bat="$(cat /sys/class/power_supply/*BAT*/capacity)"
-
+# bat="$(expr $(expr $(cat /sys/class/power_supply/*BAT*/charge_now) / $(cat /sys/class/power_supply/*BAT*/charge_full)) \* 100)"
+bat="$(awk "BEGIN {print int($(cat /sys/class/power_supply/*BAT*/charge_now)/$(cat /sys/class/power_supply/*BAT*/charge_full)*100)}")"
 # Get memory
 # free -m outputs headers, memory and swap in 3 lines
 # with tail we cut off the headers, and use head to get memory line
