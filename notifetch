@@ -93,6 +93,9 @@ then
 elif command -v yum &> /dev/null
 then
    pkg="$(yum list installed | wc -l)"
+elif command -v apt &> /dev/null
+then
+   pkg="$(apt list --installed | wc -l)"
 fi 
 
 # Get shell name
