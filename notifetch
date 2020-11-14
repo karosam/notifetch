@@ -9,7 +9,7 @@ else
 fi
 
 # Get user and hostname
-user="$(whoami)@$(cat /proc/sys/kernel/hostname)"
+user="$USER@$(cat /proc/sys/kernel/hostname)"
 
 # Get current volume percentage
 # amixer outputs Front left and Front right values with %'s and some other info
