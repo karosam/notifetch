@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Possible values:
-# user date upos kernel wm mem bat backlight vol wifi pkg sh
-config=("user" "time" "date" "uptime" "os" "kernel" "wm" "mem" "pkg" "sh")
+# user date uptime os kernel wm mem bat backlight vol wifi pkg sh weather music diks
+config=("user" "time" "date" "uptime" "os" "kernel" "wm" "mem" "pkg" "sh" "weather" "music" "disk")
 level="normal"
 weather_city="London"
+use_disk="/dev/sda1"
 user_prefix=""
 vol_prefix=""
 bat_prefix=""
@@ -20,6 +21,7 @@ uptime_prefix=""
 wm_prefix=""
 pkg_prefix=""
 sh_prefix=""
+disk_prefix=""
 for val in ${config[*]}
 do
     case $val in
@@ -30,6 +32,10 @@ do
         vol)
             vol="$(amixer -D pulse get Master | grep '%' | head -n 1 | cut -d '[' -f 2 | cut -d '%' -f 1)"
             argconf+=$vol_prefix' '$vol'%\n'
+        ;;
+        disk)
+            disk_free="$(df -h | grep $use_disk | awk '{print $4}')"
+            argconf+=$disk_prefix' '$disk_free' free\n'
         ;;
         bat)
             if [ -f /sys/class/power_supply/*BAT*/capacity ]
