@@ -1,19 +1,35 @@
 #!/usr/bin/env bash
 # Possible values:
 # user date upos kernel wm mem bat backlight vol wifi pkg sh
-config=("user" "time" "date" "uptime" "os" "kernel" "wm" "mem" "bat" "backlight" "vol" "pkg" "sh" "wifi" "music" "weather")
-level="critical"
+config=("user" "time" "date" "uptime" "os" "kernel" "wm" "mem" "pkg" "sh")
+level="normal"
 weather_city="London"
+user_prefix=""
+vol_prefix=""
+bat_prefix=""
+mem_prefix=""
+date_prefix=""
+time_prefix=""
+wifi_prefix="直"
+music_prefix=""
+weather_prefix="摒"
+backlight_prefix=""
+os_prefix=""
+kernel_prefix=""
+uptime_prefix=""
+wm_prefix=""
+pkg_prefix=""
+sh_prefix=""
 for val in ${config[*]}
 do
     case $val in
         user)
             user="$USER@$(cat /proc/sys/kernel/hostname)"
-            argconf+=' '$user'\n'
+            argconf+=$user_prefix' '$user'\n'
         ;;
         vol)
             vol="$(amixer -D pulse get Master | grep '%' | head -n 1 | cut -d '[' -f 2 | cut -d '%' -f 1)"
-            argconf+=' '$vol'%\n'
+            argconf+=$vol_prefix' '$vol'%\n'
         ;;
         bat)
             if [ -f /sys/class/power_supply/*BAT*/capacity ]
@@ -25,7 +41,7 @@ do
             else
                 bat="$(awk "BEGIN {print int($(cat /sys/class/power_supply/*BAT*/charge_now)/$(cat /sys/class/power_supply/*BAT*/charge_full)*100)}")"
             fi
-            argconf+=' '$bat'%\n'
+            argconf+=$bat_prefix' '$bat'%\n'
         ;;
         mem)
             mem="$(free -m | tail -n 2 | head -n 1 | awk '{ print $3 }')"
@@ -34,49 +50,49 @@ do
             totmem="$(echo $totmem | sed 's/$/M/')"
             mem="$(echo $mem | sed 's/$/M/')"
             mem2="$(echo $mem2 | sed 's/$/M/')"
-            argconf+=' '$mem/$mem2/$totmem'\n'
+            argconf+=$mem_prefix' '$mem/$mem2/$totmem'\n'
         ;;
         date)
             date="$(date +"%a %F")"
-            argconf+=' '$date'\n'
+            argconf+=$date_prefix' '$date'\n'
         ;;
         time)
             time="$(date +"%H:%M %p")"
-            argconf+=' '$time'\n'
+            argconf+=$time_prefix' '$time'\n'
         ;;
         wifi)
             wifi="$(iw dev wlan0 link | grep 'SSID' | cut -f 2 -d ':' | sed 's/ //g')"
-            argconf+='直 '$wifi'\n'
+            argconf+=$wifi_prefix' '$wifi'\n'
         ;;
         music)
             music="$(mpc current)"
-            argconf+=' '$music'\n'
+            argconf+=$music_prefix' '$music'\n'
         ;;
         weather)
             weather="$(curl -s http://wttr.in/$weather_city?format=3)"
-            argconf+='摒 '$weather'\n'
+            argconf+=$weather_prefix' '$weather'\n'
         ;;
         backlight)
             bckl="$(awk "BEGIN {print int(($(cat /sys/class/backlight/*/brightness)/$(cat /sys/class/backlight/*/max_brightness)*100)+0.5)}")"
-            argconf+=' '$bckl'%\n'
+            argconf+=$backlight_prefix' '$bckl'%\n'
         ;;
         os)
             os="$(cat /etc/os-release | grep NAME | head -n 1 | cut -f 2 -d '=' | sed 's/"//g')"
-            argconf+=' '$os'\n'
+            argconf+=$os_prefix' '$os'\n'
         ;;
         kernel)
             kernel="$(uname -r | cut -f 1 -d '-')"
-            argconf+=' '$kernel'\n'
+            argconf+=$kernel_prefix' '$kernel'\n'
         ;;
         uptime)
             uptime="$(uptime | cut -f 1 -d ',' | sed -E 's/^[^,]*up *//; s/, *[[:digit:]]* users.*//; s/min/minutes/; s/([[:digit:]]+):0?([[:digit:]]+)/\1 hours, \2 minutes/')"
-            argconf+=' '$uptime'\n'
+            argconf+=$uptime_prefix' '$uptime'\n'
         ;;
         wm)
             id=$(xprop -root -notype _NET_SUPPORTING_WM_CHECK)
             id=${id##* }
             wm="$(xprop -id "$id" -notype -len 25 -f _NET_WM_NAME 8t | grep 'WM_NAME' | cut -f 2 -d '=' | sed 's/ //g;s/"//g')"
-            argconf+=' '$wm'\n'
+            argconf+=$wm_prefix' '$wm'\n'
         ;;
         pkg)
             if command -v pacman &> /dev/null
@@ -92,11 +108,11 @@ do
             then
                 pkg="$(apt list --installed | wc -l)"
             fi 
-            argconf+=' '$pkg'\n'
+            argconf+=$pkg_prefix' '$pkg'\n'
         ;;
         sh)
             sh="$(echo $SHELL)"
-            argconf+=' '$sh'\n'
+            argconf+=$sh_prefix' '$sh'\n'
         ;;
     esac
 done
