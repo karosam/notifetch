@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Possible values:
-# user date uptime os kernel wm mem bat backlight vol wifi pkg sh weather music diks
-config=("user" "time" "date" "uptime" "os" "kernel" "wm" "mem" "pkg" "sh" "weather" "music" "disk")
+# user date uptime os kernel wm mem bat backlight vol wifi pkg sh weather music disk
+config=("user" "time" "date" "uptime" "os" "kernel" "wm" "mem" "pkg" "sh" "weather" "music" "disk" "wifi")
 level="normal"
 weather_city="London"
-use_disk="/dev/sda1"
+use_disk=("/dev/sda1")
 user_prefix=""
 vol_prefix=""
 bat_prefix=""
@@ -34,8 +34,20 @@ do
             argconf+=$vol_prefix' '$vol'%\n'
         ;;
         disk)
-            disk_free="$(df -h | grep $use_disk | awk '{print $4}')"
-            argconf+=$disk_prefix' '$disk_free' free\n'
+            for disk in ${use_disk[*]}
+            do
+                echo $disk
+                if [ $(df | grep $disk | wc -l) -gt 0 ]
+                then
+                    disk_size="$(df -h | grep $disk | awk '{print $2}')"
+                    disk_used="$(df -h | grep $disk | awk '{print $3}')"
+                    disk_avail="$(df -h | grep $disk | awk '{print $4}' | sed 's/$/ free/')"
+                    disk_perc_used="$(df -h | grep $disk | awk '{print $5}')"
+                    argconf+=$disk_prefix' '$disk_used' / '$disk_size' ('$disk_perc_used'), '$disk_avail'\n'
+                else
+                    argconf+=$disk_prefix' '$disk' not mounted/connected\n'
+                fi
+            done
         ;;
         bat)
             if [ -f /sys/class/power_supply/*BAT*/capacity ]
@@ -67,12 +79,18 @@ do
             argconf+=$time_prefix' '$time'\n'
         ;;
         wifi)
-            wifi="$(iw dev wlan0 link | grep 'SSID' | cut -f 2 -d ':' | sed 's/ //g')"
-            argconf+=$wifi_prefix' '$wifi'\n'
+            if command -v iw &> /dev/null
+            then
+                wifi="$(iw dev wlan0 link | grep 'SSID' | cut -f 2 -d ':' | sed 's/ //g')"
+                argconf+=$wifi_prefix' '$wifi'\n'
+            fi
         ;;
         music)
-            music="$(mpc current)"
-            argconf+=$music_prefix' '$music'\n'
+            if command -v mpc &> /dev/null
+            then
+                music="$(mpc current)"
+                argconf+=$music_prefix' '$music'\n'
+            fi
         ;;
         weather)
             weather="$(curl -s http://wttr.in/$weather_city?format=3)"
