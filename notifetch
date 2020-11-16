@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
 # Possible values:
-# user date uptime os kernel wm mem bat backlight vol wifi pkg sh weather music disk
-config=("user" "time" "date" "uptime" "os" "kernel" "wm" "mem" "pkg" "sh" "weather" "music" "disk" "wifi")
+# user time date uptime os kernel wm mem bat backlight vol wifi pkg sh weather music disk
+config=("user" "time" "date" "uptime" "os" "kernel" "wm" "mem" "pkg" "sh")
+# notification urgency level
 level="normal"
+
 weather_city="London"
-use_disk=("/dev/sda1")
+# disk path array ("/dev/***" "/dev/***" "dev/***")
+disk_path=("/dev/sda1")
+
+# icons/prefixes for values
 user_prefix=""
 vol_prefix=""
 bat_prefix=""
@@ -22,6 +27,10 @@ wm_prefix=""
 pkg_prefix=""
 sh_prefix=""
 disk_prefix=""
+
+# define which os is used for packages
+ospkg=$(uname -srm | cut -f 1 -d '')
+
 for val in ${config[*]}
 do
     case $val in
@@ -30,13 +39,15 @@ do
             argconf+=$user_prefix' '$user'\n'
         ;;
         vol)
-            vol="$(amixer -D pulse get Master | grep '%' | head -n 1 | cut -d '[' -f 2 | cut -d '%' -f 1)"
-            argconf+=$vol_prefix' '$vol'%\n'
+            if command -v amixer &> /dev/null
+            then
+                vol="$(amixer -D pulse get Master | grep '%' | head -n 1 | cut -d '[' -f 2 | cut -d '%' -f 1)"
+                argconf+=$vol_prefix' '$vol'%\n'
+            fi
         ;;
         disk)
-            for disk in ${use_disk[*]}
+            for disk in ${disk_path[*]}
             do
-                echo $disk
                 if [ $(df | grep $disk | wc -l) -gt 0 ]
                 then
                     disk_size="$(df -h | grep $disk | awk '{print $2}')"
@@ -96,8 +107,11 @@ do
             fi
         ;;
         weather)
-            weather="$(curl -s http://wttr.in/$weather_city?format=3)"
-            argconf+=$weather_prefix' '$weather'\n'
+            if command -v curl &> /dev/null
+            then
+                    weather="$(curl -s http://wttr.in/$weather_city?format=3)"
+                argconf+=$weather_prefix' '$weather'\n'
+            fi
         ;;
         backlight)
             if [ -d /sys/class/backlight ]
@@ -119,29 +133,48 @@ do
             argconf+=$uptime_prefix' '$uptime'\n'
         ;;
         wm)
-            id=$(xprop -root -notype _NET_SUPPORTING_WM_CHECK)
-            id=${id##* }
-            wm="$(xprop -id "$id" -notype -len 25 -f _NET_WM_NAME 8t | grep 'WM_NAME' | cut -f 2 -d '=' | sed 's/ //g;s/"//g')"
-            argconf+=$wm_prefix' '$wm'\n'
+            if command -v xprop &> /dev/null
+            then
+                id=$(xprop -root -notype _NET_SUPPORTING_WM_CHECK)
+                id=${id##* }
+                wm="$(xprop -id "$id" -notype -len 25 -f _NET_WM_NAME 8t | grep 'WM_NAME' | cut -f 2 -d '=' | sed 's/ //g;s/"//g')"
+                argconf+=$wm_prefix' '$wm'\n'
+            fi
         ;;
         pkg)
-            if command -v pacman &> /dev/null
-            then
-                pkg="$(pacman -Qq | wc -l)"
-            elif command -v dpkg &> /dev/null
-            then
-                pkg="$(dpkg --list | wc -l)"
-            elif command -v yum &> /dev/null
-            then
-                pkg="$(yum list installed | wc -l)"
-            elif command -v apt &> /dev/null
-            then
-                pkg="$(apt list --installed | wc -l)"
-            fi 
+            has() { command -v "$1" >/dev/null; }
+            pkg=`
+                case $ospkg in
+                    Linux*)
+                        has pacman-key && pacman -Qq
+                        has bonsai     && bonsai list
+                        has crux       && pkginfo -i
+                        has dpkg       && dpkg-query -f '.\n' -W
+                        has rpm        && rpm -qa
+                        has xbps-query && xbps-query -l
+                        has apk        && apk info
+                        has guix       && guix package --list-installed
+                        has opkg       && opkg list-installed
+                        has kiss       && printf '%s\n' /var/db/kiss/installed/*/
+                        has cpt-list   && printf '%s\n' /var/db/cpt/installed/*/
+                        has brew       && printf '%s\n' "$(brew --cellar)/"*
+                        has emerge     && printf '%s\n' /var/db/pkg/*/*/
+                        has pkgtool    && printf '%s\n' /var/log/packages/*
+                        has eopkg      && printf '%s\n' /var/lib/eopkg/package/*
+                        has nix-store  && {
+                            nix-store -q --requisites /run/current-system/sw
+                            nix-store -q --requisites ~/.nix-profile
+                        }
+                    ;;
+                    Minix)
+                        printf '%s\n' /usr/pkg/var/db/pkg/*/
+                    ;;
+                esac | wc -l
+            `
             argconf+=$pkg_prefix' '$pkg'\n'
         ;;
         sh)
-            sh="$(echo $SHELL)"
+            sh="$(basename $SHELL)"
             argconf+=$sh_prefix' '$sh'\n'
         ;;
     esac
@@ -149,7 +182,7 @@ done
 
 if command -v dunstify &> /dev/null
 then
-    dunstify -u $level -r 200 notifetch "$argconf"
+    dunstify -u $level -r 200 "notifetch" "$argconf"
 else
-    notify-send -u $level notifetch "$argconf"
+    notify-send -u $level "notifetch" "$argconf"
 fi
