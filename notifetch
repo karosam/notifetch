@@ -50,16 +50,19 @@ do
             done
         ;;
         bat)
-            if [ -f /sys/class/power_supply/*BAT*/capacity ]
+            if [ -d /sys/class/power_supply/*BAT*/ ]
             then
-                bat="$(cat /sys/class/power_supply/*BAT*/capacity)"
-            elif command -v acpi &> /dev/null
-            then
-                bat="$(acpi | cut -f 2 -d ',' | sed 's/ //g' | sed 's/%//g')"
-            else
-                bat="$(awk "BEGIN {print int($(cat /sys/class/power_supply/*BAT*/charge_now)/$(cat /sys/class/power_supply/*BAT*/charge_full)*100)}")"
+                if [ -f /sys/class/power_supply/*BAT*/capacity ]
+                then
+                    bat="$(cat /sys/class/power_supply/*BAT*/capacity)"
+                elif command -v acpi &> /dev/null
+                then
+                    bat="$(acpi | cut -f 2 -d ',' | sed 's/ //g' | sed 's/%//g')"
+                else
+                    bat="$(awk "BEGIN {print int($(cat /sys/class/power_supply/*BAT*/charge_now)/$(cat /sys/class/power_supply/*BAT*/charge_full)*100)}")"
+                fi
+                argconf+=$bat_prefix' '$bat'%\n'
             fi
-            argconf+=$bat_prefix' '$bat'%\n'
         ;;
         mem)
             mem="$(free -m | tail -n 2 | head -n 1 | awk '{ print $3 }')"
@@ -97,8 +100,11 @@ do
             argconf+=$weather_prefix' '$weather'\n'
         ;;
         backlight)
-            bckl="$(awk "BEGIN {print int(($(cat /sys/class/backlight/*/brightness)/$(cat /sys/class/backlight/*/max_brightness)*100)+0.5)}")"
-            argconf+=$backlight_prefix' '$bckl'%\n'
+            if [ -d /sys/class/backlight ]
+            then
+                bckl="$(awk "BEGIN {print int(($(cat /sys/class/backlight/*/brightness)/$(cat /sys/class/backlight/*/max_brightness)*100)+0.5)}")"
+                argconf+=$backlight_prefix' '$bckl'%\n'
+            fi
         ;;
         os)
             os="$(cat /etc/os-release | grep NAME | head -n 1 | cut -f 2 -d '=' | sed 's/"//g')"
