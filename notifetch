@@ -4,13 +4,13 @@ debug=false
 
 # Possible values:
 # user time date uptime os kernel wm mem bat backlight vol wifi pkg sh weather music disk
-config=("uptime" "kernel" "mem" "swap" "pkg")
+config=("uptime" "os" "kernel" "mem" "pkg" "sh")
 # notification urgency level
 level="normal"
 showupdates="true"
 weather_city="London"
 # disk path array ("/dev/***" "/dev/***" "dev/***")
-disk_path=("/dev/sda1")
+disk_path=("/dev/nvme0n1p1")
 
 # icons/prefixes for values
 user_prefix=""
@@ -34,13 +34,13 @@ disk_prefix=""
 
 # define which os is used for packages
 ospkg=$(uname -srm | cut -f 1 -d '')
-
+usertext="$USER@$(cat /proc/sys/kernel/hostname)"
+user=$user_prefix' '$usertext
 for val in ${config[*]}
 do
     case $val in
         user)
-            user="$USER@$(cat /proc/sys/kernel/hostname)"
-            argconf+=$user_prefix' '$user'\n'
+            argconf+=$user'\n'
         ;;
         vol)
             if command -v amixer &> /dev/null
@@ -129,7 +129,7 @@ do
             fi
         ;;
         os)
-            os="$(cat /etc/os-release | grep NAME | head -n 1 | cut -f 2 -d '=' | sed 's/"//g')"
+            os="$(cat /etc/os-release | grep NAME | head -n 1 | cut -f 2 -d '=' | sed "s/'//g")"
             argconf+=$os_prefix' '$os'\n'
         ;;
         kernel)
@@ -183,7 +183,7 @@ do
         ;;
         sh)
             sh="$(basename $SHELL)"
-            argconf+=$sh_prefix' '$sh'\n'
+            argconf+=$sh_prefix' '$sh
         ;;
     esac
 done
@@ -192,9 +192,9 @@ if [ $notification = 'true' ]
 then
     if command -v dunstify &> /dev/null
     then
-        dunstify -u $level -r 200 "notifetch" "$argconf"
+        dunstify -u $level -r 200 "$user" "$argconf"
     else
-        notify-send -u $level "notifetch" "$argconf"
+        notify-send -u $level "$user" "$argconf"
     fi
 fi
 
